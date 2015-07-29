@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Mono.Options;
 using Splat;
 using Squirrel;
+using Squirrel.Json;
 using System.Drawing;
 using System.Windows;
 using System.Windows.Shell;
@@ -157,7 +158,7 @@ namespace Squirrel.Update
                     Releasify(target, releaseDir, packagesDir, bootstrapperExe, backgroundGif, signingParameters, baseUrl, setupIcon);
                     break;
                 case UpdateAction.Shortcut:
-                    Shortcut(target, shortcutArgs);
+                    Shortcut(target, shortcutArgs, processStartArgs);
                     break;
                 case UpdateAction.Deshortcut:
                     Deshortcut(target, shortcutArgs);
@@ -398,7 +399,7 @@ namespace Squirrel.Update
 
         }
 
-        public void Shortcut(string exeName, string shortcutArgs)
+        public void Shortcut(string exeName, string shortcutArgs, string processStartArgs)
         {
             if (String.IsNullOrWhiteSpace(exeName)) {
                 ShowHelp();
@@ -410,7 +411,7 @@ namespace Squirrel.Update
             var locations = parseShortcutLocations(shortcutArgs);
 
             using (var mgr = new UpdateManager("", appName)) {
-                mgr.CreateShortcutsForExecutable(exeName, locations ?? defaultLocations, false);
+                mgr.CreateShortcutsForExecutable(exeName, locations ?? defaultLocations, false, processStartArgs);
             }
         }
 
@@ -452,7 +453,7 @@ namespace Squirrel.Update
             this.Log().Info("Want to launch '{0}'", targetExe);
 
             // Check for path canonicalization attacks
-            if (!targetExe.FullName.StartsWith(latestAppDir)) {
+            if (!targetExe.FullName.StartsWith(latestAppDir, StringComparison.Ordinal)) {
                 throw new ArgumentException();
             }
 
